@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
-
-abstract class LifeCycleState<T extends StatefulWidget> extends State<T>  with WidgetsBindingObserver, RouteAware{
+abstract class LifeCycleState<T extends StatefulWidget> extends State<T>  with WidgetsBindingObserver
+,
+    RouteAware
+{
   bool _isResumed = false;
   bool _wasStopped = false;
+
+
+
 
 
   /// Called once when the widget is inserted into the tree.
@@ -13,6 +18,9 @@ abstract class LifeCycleState<T extends StatefulWidget> extends State<T>  with W
   @override
   void initState() {
     super.initState();
+
+
+
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_){
       _onCreate?.call();
@@ -22,6 +30,7 @@ abstract class LifeCycleState<T extends StatefulWidget> extends State<T>  with W
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // AppUtils.log('state effect..... ${state}');
     if (state == AppLifecycleState.resumed) {
       if (_wasStopped) {
         _wasStopped = false;
@@ -80,6 +89,8 @@ abstract class LifeCycleState<T extends StatefulWidget> extends State<T>  with W
 
 
 
+
+
   /// Called when the widget is paused or removed
   @override
   void deactivate() {
@@ -88,7 +99,12 @@ abstract class LifeCycleState<T extends StatefulWidget> extends State<T>  with W
     super.deactivate();
   }
 
+  @override
+  void didPopNext() {
+    _onResume?.call();
+    super.didPopNext();
 
+  }
 
   /// Called when the widget is destroyed
   @override
@@ -99,30 +115,6 @@ abstract class LifeCycleState<T extends StatefulWidget> extends State<T>  with W
     routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didPopNext() {
-    // Called when coming back to this screen
-  }
-
-  @override
-  void didPushNext() {
-    // Called when navigating away from this screen
-  }
-
-  @override
-  void didPop() {
-    _onDestroy?.call();
-    _onDetached?.call();
-    // This is your "pop" event (like back button pressed)
-    debugPrint("Page popped!");
-    _onDestroy?.call();
-  }
-
-  @override
-  void didPush() {
-    // Page pushed onto stack
   }
 
   Function()? _onPause;
